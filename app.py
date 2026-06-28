@@ -65,8 +65,17 @@ if st.button("Search"):
             documents = results["documents"][0]
             metadatas = results["metadatas"][0]
 
-            context = "\n\n".join(documents)
+            context = ""
 
+            for i, doc in enumerate(documents):
+                context += f"""
+            Document {i+1}
+            Source: {metadatas[i]["source"]}
+
+            {doc}
+
+            ----------------------------------------
+            """
             with st.spinner("Generating answer..."):
 
                 answer = generate_answer(

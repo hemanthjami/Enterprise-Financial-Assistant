@@ -8,9 +8,13 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 client = chromadb.PersistentClient(path="vector_db")
 
 
-def search_documents(query, top_k=3):
+def search_documents(query, top_k=25):
+    """
+    Search the ChromaDB vector database and return the
+    most relevant document chunks.
+    """
 
-    # Get the latest collection every time
+    # Load existing collection
     collection = client.get_or_create_collection(
         name="financial_documents"
     )
@@ -18,10 +22,15 @@ def search_documents(query, top_k=3):
     # Convert query to embedding
     query_embedding = model.encode(query).tolist()
 
-    # Search
+    # Search ChromaDB
     results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=top_k
+        n_results=top_k,
+        include=[
+            "documents",
+            "metadatas",
+            "distances"
+        ]
     )
 
     return results
