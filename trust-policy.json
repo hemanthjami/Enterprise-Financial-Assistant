@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::939204158851:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/B220AE9630288082F36409BCF597D353"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.us-east-1.amazonaws.com/id/B220AE9630288082F36409BCF597D353:sub": "system:serviceaccount:default:financial-assistant-sa",
+          "oidc.eks.us-east-1.amazonaws.com/id/B220AE9630288082F36409BCF597D353:aud": "sts.amazonaws.com"
+        }
+      }
+    }
+  ]
+}

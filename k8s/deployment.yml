@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: financial-assistant
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: financial-assistant
+
+  template:
+
+    metadata:
+      labels:
+        app: financial-assistant
+
+    spec:
+
+      serviceAccountName: financial-assistant-sa
+
+      containers:
+
+      - name: financial-assistant
+
+        image: 939204158851.dkr.ecr.us-east-1.amazonaws.com/financial-assistant:latest
+
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 8501
+
+        env:
+        - name: AWS_DEFAULT_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: financial-assistant-config
+              key: AWS_DEFAULT_REGION
+
+        - name: MODEL_ID
+          valueFrom:
+            configMapKeyRef:
+              name: financial-assistant-config
+              key: MODEL_ID
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8501
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
