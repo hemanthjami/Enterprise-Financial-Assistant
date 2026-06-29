@@ -47,6 +47,33 @@ with st.sidebar:
 
 st.header("💬 Ask Questions")
 
+import chromadb
+
+# Read uploaded PDF names from ChromaDB
+client = chromadb.PersistentClient(path="vector_db")
+
+try:
+    collection = client.get_collection("financial_documents")
+
+    data = collection.get()
+
+    pdf_names = sorted(
+        list(
+            set(
+                meta["source"]
+                for meta in data["metadatas"]
+            )
+        )
+    )
+
+except:
+    pdf_names = []
+
+selected_pdf = st.selectbox(
+    "📄 Select Document",
+    ["All Documents"] + pdf_names
+)
+
 question = st.text_input(
     "Ask a question about your uploaded documents"
 )
@@ -60,22 +87,29 @@ if st.button("Search"):
 
         try:
 
-            results = search_documents(question)
+            # Search selected document or all documents
+            results = search_documents(
+                question,
+                selected_pdf
+            )
 
             documents = results["documents"][0]
             metadatas = results["metadatas"][0]
 
             context = ""
 
-            for i, doc in enumerate(documents):
+            for doc, meta in zip(documents, metadatas):
+
                 context += f"""
-            Document {i+1}
-            Source: {metadatas[i]["source"]}
 
-            {doc}
+Source: {meta["source"]}
 
-            ----------------------------------------
-            """
+{doc}
+
+--------------------------------------------------------
+
+"""
+
             with st.spinner("Generating answer..."):
 
                 answer = generate_answer(
@@ -89,15 +123,18 @@ if st.button("Search"):
 
             st.subheader("📚 Sources")
 
-            unique_sources = sorted({
-            meta["source"].replace(".pdf.pdf", ".pdf")
-                for meta in metadatas
-            })
+            unique_sources = sorted(
+                set(
+                    meta["source"]
+                    for meta in metadatas
+                )
+            )
 
             for source in unique_sources:
                 st.write(f"• {source}")
 
         except Exception as e:
+
             st.error(str(e))
 # ==========================================
 # UPLOAD SECTION
